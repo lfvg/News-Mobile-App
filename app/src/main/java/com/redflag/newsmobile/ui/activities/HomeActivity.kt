@@ -6,8 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,15 +28,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.redflag.newsmobile.R
 import com.redflag.newsmobile.data.HomeScreen
+import com.redflag.newsmobile.data.remote.model.Article
 import com.redflag.newsmobile.ui.theme.NewsMobileTheme
 import com.redflag.newsmobile.ui.viewModel.HomeViewModel
-
+import com.redflag.newsmobile.utils.composables.NewsCard
 
 
 class HomeActivity : ComponentActivity() {
@@ -58,6 +64,8 @@ class HomeActivity : ComponentActivity() {
 @Composable
 fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier) {
     var bottomMenuSelectedItem by remember { mutableStateOf(HomeScreen.Start) }
+    val viewModel: HomeViewModel = HomeViewModel()
+
     Scaffold(bottomBar = {
         NavigationBar {
             NavigationBarItem(selected = bottomMenuSelectedItem == HomeScreen.Start,
@@ -149,11 +157,16 @@ fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier
 
             NavHost(navController = navHostController, startDestination = HomeScreen.Start.name){
                 composable(route = HomeScreen.Start.name) {
-                    val viewModel: HomeViewModel = HomeViewModel()
                     val data by viewModel.data.collectAsState()
-                    Text(
-                        text = data.toString(),
-                    )
+                    Column ( modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(4.dp),
+                        verticalArrangement = Arrangement.SpaceEvenly){
+                            data?.forEach { article: Article ->
+                            NewsCard(
+                                article = article, modifier = Modifier,
+                                onClick = { }
+                            )
+                        }
+                    }
                 }
                 composable(route = HomeScreen.Bookmark.name) {
                     Text(
