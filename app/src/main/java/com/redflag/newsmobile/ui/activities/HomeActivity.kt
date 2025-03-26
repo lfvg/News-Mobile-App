@@ -39,6 +39,7 @@ import com.redflag.newsmobile.data.remote.model.Article
 import com.redflag.newsmobile.ui.theme.NewsMobileTheme
 import com.redflag.newsmobile.ui.viewModel.HomeViewModel
 import com.redflag.newsmobile.utils.composables.NewsCard
+import com.redflag.newsmobile.utils.composables.NewsCardSide
 
 
 class HomeActivity : ComponentActivity() {
@@ -161,10 +162,15 @@ fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier
                     Column ( modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(4.dp),
                         verticalArrangement = Arrangement.SpaceEvenly){
                             data?.forEach { article: Article ->
-                            NewsCard(
-                                article = article, modifier = Modifier,
-                                onClick = { }
-                            )
+                                if(article.title.length < 80) {
+                                    NewsCard(
+                                        article = article, modifier = Modifier,
+                                        onClick = { }
+                                    )
+                                }
+                                else {
+                                    NewsCardSide(article = article, modifier = Modifier, onClick = { })
+                                }
                         }
                     }
                 }
