@@ -52,9 +52,9 @@ fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                 Text(text = article.title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 //            Column (modifier = Modifier.padding(6.dp)){
-            if (article.description != null) {
-                Text(text = article.description, fontSize = 16.sp)
-            }
+//            if (article.description != null) {
+//                Text(text = article.description, fontSize = 16.sp)
+//            }
             Row (modifier= Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
                 Text(text = article.author?: "", fontSize = 14.sp)
                 Text(text = article.publishedAt, fontSize = 14.sp)

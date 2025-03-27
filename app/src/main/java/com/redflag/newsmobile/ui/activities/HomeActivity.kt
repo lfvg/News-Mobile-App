@@ -7,15 +7,19 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,9 +28,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -38,6 +47,7 @@ import com.redflag.newsmobile.data.HomeScreen
 import com.redflag.newsmobile.data.remote.model.Article
 import com.redflag.newsmobile.ui.theme.NewsMobileTheme
 import com.redflag.newsmobile.ui.viewModel.HomeViewModel
+import com.redflag.newsmobile.ui.viewModel.SearchViewModel
 import com.redflag.newsmobile.utils.composables.NewsCard
 import com.redflag.newsmobile.utils.composables.NewsCardSide
 
@@ -61,11 +71,12 @@ class HomeActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalAnimationGraphicsApi::class)
+@OptIn(ExperimentalAnimationGraphicsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier) {
     var bottomMenuSelectedItem by remember { mutableStateOf(HomeScreen.Start) }
-    val viewModel: HomeViewModel = HomeViewModel()
+    val homeViewModel: HomeViewModel = HomeViewModel()
+    val searchViewModel: SearchViewModel = SearchViewModel()
 
     Scaffold(bottomBar = {
         NavigationBar {
@@ -158,7 +169,7 @@ fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier
 
             NavHost(navController = navHostController, startDestination = HomeScreen.Start.name){
                 composable(route = HomeScreen.Start.name) {
-                    val data by viewModel.data.collectAsState()
+                    val data by homeViewModel.data.collectAsState()
                     Column ( modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(4.dp),
                         verticalArrangement = Arrangement.SpaceEvenly){
                             data?.forEach { article: Article ->
@@ -180,9 +191,41 @@ fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier
                     )
                 }
                 composable(route = HomeScreen.Search.name) {
-                    Text(
-                        text = "Search Screen!",
-                    )
+                    val placeholder = emptyList<String>()
+                    val searchData by searchViewModel.data.collectAsState()
+                    var expanded by rememberSaveable { mutableStateOf(false) }
+                    var queryText by rememberSaveable { mutableStateOf("") }
+
+                    Box(
+                        modifier
+                            .fillMaxSize()
+                            .semantics { isTraversalGroup = true }
+                    ) {
+                        SearchBar(
+                            query = queryText,
+                            onQueryChange = { queryText = it },
+                            onSearch = {
+                                searchViewModel.search(queryText)
+                                expanded = false
+                                       },
+                            active = expanded,
+                            onActiveChange = { expanded = it },
+                            placeholder = { Text(text = "Search for news") },
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .semantics { traversalIndex = 0f }
+
+                        ) {
+
+                        }
+                        Column(Modifier.verticalScroll(rememberScrollState())) {
+                            searchData.toString()
+                            searchData?.forEach { result ->
+                                if (result.title != null)
+                                    Text(text = result.title)
+                            }
+                        }
+                    }
                 }
                 composable(route = HomeScreen.Settings.name) {
                     Text(
