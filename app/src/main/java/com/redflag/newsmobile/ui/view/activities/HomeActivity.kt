@@ -1,6 +1,8 @@
-package com.redflag.newsmobile.ui.activities
+package com.redflag.newsmobile.ui.view.activities
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -51,6 +53,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -77,8 +80,10 @@ import com.redflag.newsmobile.ui.viewModel.HomeViewModel
 import com.redflag.newsmobile.ui.viewModel.SearchViewModel
 import com.redflag.newsmobile.utils.composables.NewsCard
 import com.redflag.newsmobile.utils.composables.NewsCardSide
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
 import java.util.UUID
+import kotlin.coroutines.coroutineContext
 
 
 class HomeActivity : ComponentActivity() {
@@ -224,14 +229,18 @@ fun HomeView(navHostController: NavHostController, catalogDao: CatalogDao, sampl
                     Column ( modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(4.dp),
                         verticalArrangement = Arrangement.SpaceEvenly){
                             data?.forEach { article: Article ->
+                                val context = LocalContext.current
+                                val intent = remember { Intent(Intent.ACTION_VIEW, Uri.parse(article.url.toString()))}
                                 if(article.title.length < 80) {
                                     NewsCard(
                                         article = article, modifier = Modifier,
-                                        onClick = { }
+                                        onClick = {
+                                            context.startActivity(intent)
+                                        }
                                     )
                                 }
                                 else {
-                                    NewsCardSide(article = article, modifier = Modifier, onClick = { })
+                                    NewsCardSide(article = article, modifier = Modifier, onClick = { context.startActivity(intent) })
                                 }
                         }
                     }

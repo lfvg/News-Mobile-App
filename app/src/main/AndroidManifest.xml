@@ -15,7 +15,7 @@
         android:theme="@style/Theme.NewsMobile"
         tools:targetApi="31">
         <activity
-            android:name=".ui.activities.HomeActivity"
+            android:name=".ui.view.activities.HomeActivity"
             android:exported="true"
             android:theme="@style/Theme.NewsMobile">
             <intent-filter>
