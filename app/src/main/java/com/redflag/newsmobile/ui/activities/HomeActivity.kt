@@ -1,22 +1,40 @@
 package com.redflag.newsmobile.ui.activities
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -28,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,28 +61,57 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.redflag.newsmobile.R
 import com.redflag.newsmobile.data.HomeScreen
+import com.redflag.newsmobile.data.remote.database.AppDatabase
+import com.redflag.newsmobile.data.remote.database.dao.CatalogDao
+import com.redflag.newsmobile.data.remote.database.entities.Catalog
 import com.redflag.newsmobile.data.remote.model.Article
+import com.redflag.newsmobile.notification.SampleNotificationService
 import com.redflag.newsmobile.ui.theme.NewsMobileTheme
 import com.redflag.newsmobile.ui.viewModel.HomeViewModel
 import com.redflag.newsmobile.ui.viewModel.SearchViewModel
 import com.redflag.newsmobile.utils.composables.NewsCard
 import com.redflag.newsmobile.utils.composables.NewsCardSide
+import kotlinx.coroutines.launch
+import java.util.UUID
 
 
 class HomeActivity : ComponentActivity() {
+    @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "news-db.db"
+        ).build()
+        val catalogDao = db.catalogDao()
+
+
         enableEdgeToEdge()
         setContent {
+            val postNotificationPermission = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+            val sampleNotificationService = SampleNotificationService(this)
+
+            LaunchedEffect(key1 = true) {
+                if(!postNotificationPermission.status.isGranted) {
+                    postNotificationPermission.launchPermissionRequest()
+                }
+            }
+
             val navController = rememberNavController()
             NewsMobileTheme {
                 val navController = rememberNavController()
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     HomeView(
-                        navController
+                        navController, catalogDao, sampleNotificationService
                     )
                 }
             }
@@ -73,10 +121,13 @@ class HomeActivity : ComponentActivity() {
 
 @OptIn(ExperimentalAnimationGraphicsApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier) {
+fun HomeView(navHostController: NavHostController, catalogDao: CatalogDao, sampleNotificationService: SampleNotificationService, modifier: Modifier = Modifier) {
     var bottomMenuSelectedItem by remember { mutableStateOf(HomeScreen.Start) }
     val homeViewModel: HomeViewModel = HomeViewModel()
     val searchViewModel: SearchViewModel = SearchViewModel()
+
+    val scope = rememberCoroutineScope()
+    val catalogList by catalogDao.getAll().collectAsState(initial = emptyList())
 
     Scaffold(bottomBar = {
         NavigationBar {
@@ -186,9 +237,104 @@ fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier
                     }
                 }
                 composable(route = HomeScreen.Bookmark.name) {
-                    Text(
-                        text = "Bookmark Screen!",
-                    )
+                    var showDialog by remember { mutableStateOf(false) }
+                    var inputText by remember { mutableStateOf("") }
+                    val navController = rememberNavController()
+
+                    Scaffold(
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = { showDialog = true },
+                            ) {
+                                Icon(imageVector = Icons.Default.Add, contentDescription = "Adicionar")
+                            }
+                        }
+                    ) { paddingValues ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                                .verticalScroll(rememberScrollState()),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            catalogList.forEach { item ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding( 10.dp, 0.dp, 0.dp, 10.dp),
+                                    shape = MaterialTheme.shapes.medium,
+                                    elevation = CardDefaults.cardElevation(4.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            text = item.title,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        IconButton(onClick = {
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Settings,
+                                                contentDescription = "Configurações"
+                                            )
+                                        }
+
+                                        IconButton(onClick = {
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Remover"
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (showDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog = false },
+                            title = { Text("Criar catalogo") },
+                            text = {
+                                OutlinedTextField(
+                                    value = inputText,
+                                    onValueChange = { inputText = it },
+                                    label = { Text("Digite algo") }
+                                )
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    val newCatalog = Catalog(
+                                        id = UUID.randomUUID().toString(),
+                                        title = inputText
+                                    )
+                                    scope.launch {
+                                        catalogDao.insert(newCatalog)
+                                    }
+                                    sampleNotificationService.showBasicNotification()
+                                    inputText = "" // zerando o inputText depois de clicar o botão !
+                                    showDialog = false
+                                }) {
+                                    Text("Criar")
+                                }
+                            },
+                            dismissButton = {
+                                Button(onClick = {
+                                    showDialog = false
+                                    navController.navigate(route = HomeScreen.Bookmark.name) // Voltar para HomeScreen
+                                }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        )
+                    }
                 }
                 composable(route = HomeScreen.Search.name) {
                     val placeholder = emptyList<String>()
@@ -239,10 +385,10 @@ fun HomeView(navHostController: NavHostController, modifier: Modifier = Modifier
 
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    NewsMobileTheme {
-        HomeView(rememberNavController())
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun GreetingPreview() {
+//    NewsMobileTheme {
+//        HomeView(rememberNavController())
+//    }
+//}

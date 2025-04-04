@@ -1,4 +1,5 @@
 plugins {
+    id("com.google.devtools.ksp")
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
@@ -50,6 +51,14 @@ android {
 }
 
 dependencies {
+    // room dependencias
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.room.compiler)
+
+    // notification dependencies
+    implementation (libs.accompanist.permissions)
+
     implementation(libs.androidx.animation.graphics.android)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
