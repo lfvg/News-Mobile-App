@@ -376,8 +376,7 @@ fun HomeView(navHostController: NavHostController, catalogDao: CatalogDao, sampl
                         Column(Modifier.verticalScroll(rememberScrollState())) {
                             searchData.toString()
                             searchData?.forEach { result ->
-                                if (result.title != null)
-                                    Text(text = result.title)
+                                NewsCardSide(article = result, modifier = Modifier, onClick = {})
                             }
                         }
                     }
