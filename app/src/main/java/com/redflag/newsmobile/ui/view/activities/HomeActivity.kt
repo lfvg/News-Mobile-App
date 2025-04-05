@@ -233,7 +233,8 @@ fun HomeView(navHostController: NavHostController, catalogDao: CatalogDao, sampl
                                 val intent = remember { Intent(Intent.ACTION_VIEW, Uri.parse(article.url.toString()))}
                                 if(article.title.length < 80) {
                                     NewsCard(
-                                        article = article, modifier = Modifier,
+                                        article = article,
+                                        modifier = Modifier,
                                         onClick = {
                                             context.startActivity(intent)
                                         }

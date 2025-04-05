@@ -14,8 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -62,7 +66,11 @@ fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit) {
             else {
                 Text(text = article.title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            Row (modifier= Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+            Row (
+                modifier= Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ){
                 Column (modifier = Modifier.weight(1f)) {
                     Text(
                         text = article.author ?: "",
@@ -71,8 +79,22 @@ fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                Column (modifier = Modifier.weight(1f)) {
-                    Text(text = date, fontSize = 14.sp)
+//                Column (modifier = Modifier.weight(1f)) {
+//                    Text(text = date, fontSize = 14.sp)
+//                }
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = date,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    IconButton(onClick = {  }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.List,
+                            contentDescription = "Salvar artigo",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 //            }

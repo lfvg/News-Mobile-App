@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -52,7 +56,7 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                 Box() {
                     AsyncImage(
                         model = article.urlToImage.toString(),
-                        contentDescription = "teste"
+                        contentDescription = "Article image"
                     )
                     Text(text = article.title, fontSize = 20.sp, fontWeight = FontWeight.Bold,
                         style = TextStyle(
@@ -70,7 +74,11 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                 if (article.description != null) {
                     Text(text = article.description, fontSize = 16.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
-                Row (modifier= Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween){
+                Row (
+                    modifier= Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
                     Column {
                         Text(
                             text = article.author ?: "",
@@ -79,8 +87,19 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Column {
-                        Text(text = date, fontSize = 14.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = date,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                        IconButton(onClick = { /* TODO: ação de salvar aqui */ }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Salvar artigo",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
 

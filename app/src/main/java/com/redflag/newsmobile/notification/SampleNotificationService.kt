@@ -2,6 +2,8 @@ package com.redflag.newsmobile.notification
 
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 
 class SampleNotificationService(
