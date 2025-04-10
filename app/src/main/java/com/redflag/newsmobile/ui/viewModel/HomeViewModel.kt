@@ -22,6 +22,7 @@ class HomeViewModel: ViewModel() {
         //fetchData()
         viewModelScope.launch {
             _data.value = emptyList(); //reset data
+
             val response = newsAppApi.getHeadLines()
             if(response.isSuccessful) {
                 _data.value = response.body()?.articles ?: emptyList()
@@ -40,6 +41,22 @@ class HomeViewModel: ViewModel() {
             if (response.isSuccessful) {
                 Log.d("HomeViewModel", "Data fetched successfully")
                 _data.value = response.body()?.articles ?: emptyList()
+            }
+        }
+    }
+    fun refreshData() {
+        viewModelScope.launch {
+            _data.value = emptyList();
+            try {
+                val response = newsAppApi.getHeadLines()
+                if (response.isSuccessful) {
+                    Log.d("HomeViewModel", "Data refreshed successfully")
+                    _data.value = response.body()?.articles ?: emptyList()
+                } else {
+                    Log.d("HomeViewModel", "Error refreshing data: " + response.code() + response.raw())
+                }
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error refreshing data: ${e.message}")
             }
         }
     }

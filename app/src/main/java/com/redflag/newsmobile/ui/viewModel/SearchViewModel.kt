@@ -22,18 +22,22 @@ class SearchViewModel: ViewModel() {
     }
     private fun fetchData(searchQuery: String) {
         Log.d("SearchViewModel:fetchData", "Search query: $searchQuery")
-
         viewModelScope.launch {
-            _data.value = emptyList(); //reset data
-            val response = newsAppApi.searchNews(searchQuery)
-            if(response.isSuccessful) {
-                Log.d("SearchViewModel", "Data fetched successfully")
-                _data.value = response.body()?.articles ?: emptyList()
-            }
-            else {
-                Log.d("SerachViewModel", "Error fetching data: " + response.code() + response.raw())
+            _data.value = emptyList()
+
+            try {
+                val response = newsAppApi.searchNews(searchQuery)
+                if (response.isSuccessful) {
+                    Log.d("SearchViewModel", "Data fetched successfully")
+                    _data.value = response.body()?.articles ?: emptyList()
+                } else {
+                    Log.d("SearchViewModel", "Error fetching data: ${response.code()} ${response.raw()}")
+                    _data.value = emptyList()
+                }
+            } catch (e: Exception) {
+                Log.e("SearchViewModel", "Exception fetching data: ${e.message}", e)
+                _data.value = emptyList()
             }
         }
     }
-
 }

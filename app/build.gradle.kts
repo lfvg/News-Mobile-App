@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.redflag.newsmobile"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.redflag.newsmobile"
@@ -54,6 +54,7 @@ dependencies {
     // room dependencias
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
     ksp(libs.androidx.room.room.compiler)
 
     // notification dependencies
@@ -110,5 +111,10 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
 
+    implementation("androidx.compose.ui:ui:1.4.3")
+    implementation("androidx.compose.material:material:1.4.3")
+    implementation(libs.androidx.material3.v111)
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
+    implementation("androidx.work:work-runtime:2.7.1")
 
 }
