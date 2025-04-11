@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -22,7 +23,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,12 +43,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.redflag.newsmobile.data.remote.database.dao.CatalogDao
+import com.redflag.newsmobile.data.remote.database.entities.ArticleItem
+import com.redflag.newsmobile.data.remote.database.entities.Catalog
 import com.redflag.newsmobile.data.remote.model.Article
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @Composable
-fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
+fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit, catalogDao: CatalogDao) {
+    val catalogList by catalogDao.getAll().collectAsState(initial = emptyList())
     var date  = ""
     if (article.publishedAt != null) {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -48,6 +63,8 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
         date = DateTimeFormatter.ofPattern("dd MMMM yyyy, hh:mma")
             .format(formattedDate) //  04 August 2017, 6:39pm
     }
+    var showDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     Surface (modifier = Modifier.padding(bottom = 6.dp).clickable(onClick = onClick)) {
         Column (modifier = Modifier.padding(6.dp)){
@@ -93,7 +110,7 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                             fontSize = 14.sp,
                             modifier = Modifier.padding(end = 4.dp)
                         )
-                        IconButton(onClick = { /* TODO: ação de salvar aqui */ }) {
+                        IconButton(onClick = { showDialog = true }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = "Salvar artigo",
@@ -105,4 +122,61 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit) {
 
         }
     }
+    if (showDialog) {
+        SaveArticleDialog(
+            catalogList = catalogList,
+            onDismiss = { showDialog = false },
+            onSelectCatalog = { catalog ->
+                scope.launch {
+                    val articleItem = ArticleItem(
+                        id = UUID.randomUUID().toString(),
+                        catalogId = catalog.id,
+                        title = article.title ?: "Sem título",
+                        description = article.description,
+                        url = article.url.toString(),
+                        urlToImage = article.urlToImage.toString()
+                    )
+                    catalogDao.insertArticle(articleItem)
+                }
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun SaveArticleDialog(catalogList: List<Catalog>, onDismiss: () -> Unit, onSelectCatalog: (Catalog) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Salvar em catalogo") },
+        text = {
+            if (catalogList.isEmpty()) {
+                Text("Nenhum catalogo disponível.")
+            } else {
+                Column {
+                    catalogList.forEach { catalog ->
+                        OutlinedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                                .clickable {
+                                    onSelectCatalog(catalog)
+                                }
+                        ) {
+                            Text(
+                                text = catalog.title,
+                                modifier = Modifier.padding(12.dp),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }

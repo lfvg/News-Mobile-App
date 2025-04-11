@@ -79,7 +79,12 @@ import java.util.UUID
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import com.google.accompanist.permissions.isGranted
+import com.redflag.newsmobile.notification.SampleNotificationService
 
 class HomeActivity : ComponentActivity() {
     @OptIn(ExperimentalPermissionsApi::class)
@@ -90,15 +95,19 @@ class HomeActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "news-db.db"
-        ).build()
+            "news-db-v3.db" // Sempre que atualizar algum schema, criar nova versão do banco !
+        ).fallbackToDestructiveMigration().build()
         val catalogDao: CatalogDao = db.catalogDao()
+
 
         enableEdgeToEdge()
         setContent {
+
             // Solicita permissão para notificações
             val postNotificationPermission =
                 rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+            val sampleNotificationService = SampleNotificationService(this)
+
             LaunchedEffect(key1 = true) {
                 if (!postNotificationPermission.status.isGranted) {
                     postNotificationPermission.launchPermissionRequest()
@@ -110,7 +119,7 @@ class HomeActivity : ComponentActivity() {
 
             val navController = rememberNavController()
             NewsMobileTheme {
-                HomeView(navHostController = navController, catalogDao = catalogDao)
+                HomeView(navHostController = navController, catalogDao = catalogDao, sampleNotificationService)
             }
         }
     }
@@ -121,6 +130,7 @@ class HomeActivity : ComponentActivity() {
 fun HomeView(
     navHostController: NavHostController,
     catalogDao: CatalogDao,
+    sampleNotificationService: SampleNotificationService,
     modifier: Modifier = Modifier
 ) {
     var bottomMenuSelectedItem by remember { mutableStateOf(HomeScreen.Start) }
@@ -248,13 +258,15 @@ fun HomeView(
                                     NewsCard(
                                         article = article,
                                         modifier = Modifier,
-                                        onClick = { context.startActivity(intent) }
+                                        onClick = { context.startActivity(intent) },
+                                        catalogDao
                                     )
                                 } else {
                                     NewsCardSide(
                                         article = article,
                                         modifier = Modifier,
-                                        onClick = { context.startActivity(intent) }
+                                        onClick = { context.startActivity(intent) },
+                                        catalogDao
                                     )
                                 }
                             }
@@ -269,8 +281,10 @@ fun HomeView(
                 }
                 composable(route = HomeScreen.Bookmark.name) {
                     var showDialog by remember { mutableStateOf(false) }
+                    var showArticlesDialog by remember { mutableStateOf(false) }
                     var inputText by remember { mutableStateOf("") }
                     val innerNavController = rememberNavController()
+                    var selectedCatalogId by remember { mutableStateOf<String?>(null) }
 
                     Scaffold(
                         floatingActionButton = {
@@ -295,7 +309,11 @@ fun HomeView(
                                         .fillMaxWidth()
                                         .padding(10.dp, 0.dp, 0.dp, 10.dp),
                                     shape = MaterialTheme.shapes.medium,
-                                    elevation = CardDefaults.cardElevation(4.dp)
+                                    elevation = CardDefaults.cardElevation(4.dp),
+                                    onClick = ({
+                                        selectedCatalogId = item.id
+                                        showArticlesDialog = true
+                                    })
                                 ) {
                                     Row(
                                         modifier = Modifier
@@ -310,15 +328,9 @@ fun HomeView(
                                             modifier = Modifier.weight(1f)
                                         )
                                         IconButton(onClick = {
-                                            // Lógica para configurações do item, se necessário
-                                        }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Settings,
-                                                contentDescription = "Configurações"
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            // Lógica para remover o item
+                                            scope.launch {
+                                                catalogDao.delete(item)
+                                            }
                                         }) {
                                             Icon(
                                                 imageVector = Icons.Default.Close,
@@ -330,6 +342,15 @@ fun HomeView(
                             }
                         }
                     }
+
+                    if (showArticlesDialog && selectedCatalogId != null) {
+                        CatalogArticlesDialog(
+                            catalogId = selectedCatalogId!!,
+                            catalogDao = catalogDao,
+                            onDismiss = { showArticlesDialog = false }
+                        )
+                    }
+
                     if (showDialog) {
                         AlertDialog(
                             onDismissRequest = { showDialog = false },
@@ -338,7 +359,7 @@ fun HomeView(
                                 OutlinedTextField(
                                     value = inputText,
                                     onValueChange = { inputText = it },
-                                    label = { Text("Digite algo") }
+                                    label = { Text("Nome do catalogo") }
                                 )
                             },
                             confirmButton = {
@@ -350,8 +371,10 @@ fun HomeView(
                                     scope.launch {
                                         catalogDao.insert(newCatalog)
                                     }
-                                    inputText = ""
+
                                     showDialog = false
+                                    sampleNotificationService.showBasicNotification(title = "Notificação", text = "Catalogo \"${inputText}\" adicionado")
+                                    inputText = ""
                                 }) {
                                     Text("Criar")
                                 }
@@ -366,6 +389,7 @@ fun HomeView(
                             }
                         )
                     }
+
                 }
                 composable(route = HomeScreen.Search.name) {
                     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -393,7 +417,7 @@ fun HomeView(
                         ) { }
                         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                             searchData?.forEach { result ->
-                                NewsCardSide(article = result, modifier = Modifier, onClick = { })
+                                NewsCardSide(article = result, modifier = Modifier, onClick = { }, catalogDao)
                             }
                         }
                     }
@@ -404,4 +428,58 @@ fun HomeView(
             }
         }
     }
+}
+
+@Composable
+fun CatalogArticlesDialog(
+    catalogId: String,
+    catalogDao: CatalogDao,
+    onDismiss: () -> Unit
+) {
+    val catalogWithArticles by catalogDao
+        .getCatalogWithArticles(catalogId)
+        .collectAsState(initial = null)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Fechar")
+            }
+        },
+        title = {
+            Text(text = catalogWithArticles?.catalog?.title ?: "Artigos")
+        },
+        text = {
+            if (catalogWithArticles == null) {
+                Text("Carregando artigos...")
+            } else {
+                val articles = catalogWithArticles!!.articles
+                if (articles.isEmpty()) {
+                    Text("Nenhum artigo neste catálogo.")
+                } else {
+                    Column {
+                        articles.forEach { article ->
+                            ElevatedCard(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(article.title, fontWeight = FontWeight.Bold)
+                                    article.description?.let {
+                                        Text(
+                                            it,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
 }

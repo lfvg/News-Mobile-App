@@ -11,10 +11,10 @@ class SampleNotificationService(
 ) {
     private val notificationManager = context.getSystemService(NotificationManager::class.java)
 
-    fun showBasicNotification() {
+    fun showBasicNotification(title: String = "Notification", text: String? = "Notification Update") {
         val notification = NotificationCompat.Builder(context, "base_notification")
-            .setContentTitle("Base notification")
-            .setContentText("Catalogo criado com sucesso")
+            .setContentTitle(title)
+            .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_notification_overlay)
             .setPriority(NotificationManager.IMPORTANCE_HIGH)
             .setAutoCancel(true)

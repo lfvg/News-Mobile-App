@@ -25,6 +25,8 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,12 +38,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.redflag.newsmobile.data.remote.database.dao.CatalogDao
 import com.redflag.newsmobile.data.remote.model.Article
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit) {
+fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit, catalogDao: CatalogDao) {
+    val catalogList by catalogDao.getAll().collectAsState(initial = emptyList())
     var date  = ""
     if (article.publishedAt != null) {
         val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -88,7 +92,9 @@ fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit) {
                         fontSize = 14.sp,
                         modifier = Modifier.padding(end = 4.dp)
                     )
-                    IconButton(onClick = {  }) {
+                    IconButton(onClick = {
+
+                    }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.List,
                             contentDescription = "Salvar artigo",
