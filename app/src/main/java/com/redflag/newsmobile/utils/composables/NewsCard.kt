@@ -144,39 +144,3 @@ fun NewsCard(article: Article, modifier: Modifier?, onClick: () -> Unit, catalog
     }
 }
 
-@Composable
-fun SaveArticleDialog(catalogList: List<Catalog>, onDismiss: () -> Unit, onSelectCatalog: (Catalog) -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Salvar em catalogo") },
-        text = {
-            if (catalogList.isEmpty()) {
-                Text("Nenhum catalogo disponível.")
-            } else {
-                Column {
-                    catalogList.forEach { catalog ->
-                        OutlinedCard(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                                .clickable {
-                                    onSelectCatalog(catalog)
-                                }
-                        ) {
-                            Text(
-                                text = catalog.title,
-                                modifier = Modifier.padding(12.dp),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
-}
