@@ -371,10 +371,10 @@ fun HomeView(
                                     scope.launch {
                                         catalogDao.insert(newCatalog)
                                     }
-
                                     showDialog = false
                                     sampleNotificationService.showBasicNotification(title = "Notificação", text = "Catalogo \"${inputText}\" adicionado")
                                     inputText = ""
+
                                 }) {
                                     Text("Criar")
                                 }
