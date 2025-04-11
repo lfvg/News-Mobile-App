@@ -8,12 +8,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface NewsAppApi {
-    //f887caf7b156483d97fabdd491b92fa5
 
-//    @Headers({
-//        "Accept: application/json",
-//        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
-//    })
     @Headers("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
     @GET("/v2/top-headlines?country=us&apiKey=f887caf7b156483d97fabdd491b92fa5")
     suspend fun getHeadLines(): Response<NewsResponse>
@@ -21,4 +16,8 @@ interface NewsAppApi {
     @Headers("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
     @GET("v2/everything")
     suspend fun searchNews(@Query("q") queryText: String, @Query("apiKey") apiKey: String = "f887caf7b156483d97fabdd491b92fa5"): Response<NewsResponse>
+
+    @Headers("User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36")
+    @GET("v2/everything/sources")
+    suspend fun searchNewsWithFilter(@Query("q") queryText: String, @Query("apiKey") apiKey: String = "f887caf7b156483d97fabdd491b92fa5", @Query("country") country: String? = null, @Query("category") category: String? = null, @Query("language") language: String? = null): Response<NewsResponse>
 }

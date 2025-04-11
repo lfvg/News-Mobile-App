@@ -12,12 +12,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
+import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -79,10 +84,12 @@ import java.util.UUID
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.isGranted
 import com.redflag.newsmobile.notification.SampleNotificationService
 
@@ -91,11 +98,11 @@ class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Inicializa o banco de dados
+
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "news-db-v3.db" // Sempre que atualizar algum schema, criar nova versão do banco !
+            "news-db-v3.db"
         ).fallbackToDestructiveMigration().build()
         val catalogDao: CatalogDao = db.catalogDao()
 
@@ -103,7 +110,6 @@ class HomeActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
 
-            // Solicita permissão para notificações
             val postNotificationPermission =
                 rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
             val sampleNotificationService = SampleNotificationService(this)
@@ -140,6 +146,11 @@ fun HomeView(
     val catalogList by catalogDao.getAll().collectAsState(initial = emptyList())
     var isRefreshing by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
+    // Para os filtros !!
+    var selectedCategory by remember { mutableStateOf("all") }
+    var selectedLanguage by remember { mutableStateOf("all") }
+    var selectedCountry by remember { mutableStateOf("all") }
 
     Scaffold(bottomBar = {
         NavigationBar {
@@ -405,7 +416,11 @@ fun HomeView(
                             query = queryText,
                             onQueryChange = { queryText = it },
                             onSearch = {
-                                searchViewModel.search(queryText)
+                                if(selectedCountry != "all" && selectedCategory != "all" && selectedLanguage != "all") {
+
+                                } else {
+                                    searchViewModel.search(queryText)
+                                }
                                 expanded = false
                             },
                             active = expanded,
@@ -423,7 +438,140 @@ fun HomeView(
                     }
                 }
                 composable(route = HomeScreen.Settings.name) {
-                    Text(text = "Settings Screen!")
+                    val categories = listOf(
+                        "all",
+                        "business",
+                        "entertainment",
+                        "general",
+                        "health",
+                        "science",
+                        "sports",
+                        "technology"
+                    )
+                    val languages = listOf(
+                        "all",
+                        "ar",
+                        "de",
+                        "en",
+                        "es",
+                        "fr",
+                        "he",
+                        "it",
+                        "nl",
+                        "no",
+                        "pt",
+                        "ru",
+                        "sv",
+                        "ud",
+                        "zh"
+                    )
+                    val countries = listOf(
+                        "all",
+                        "ae",
+                        "ar",
+                        "at",
+                        "au",
+                        "be",
+                        "bg",
+                        "br",
+                        "ca",
+                        "ch",
+                        "cn",
+                        "co",
+                        "cu",
+                        "cz",
+                        "de",
+                        "eg",
+                        "fr",
+                        "gb",
+                        "gr",
+                        "hk",
+                        "hu",
+                        "id",
+                        "ie",
+                        "il",
+                        "in",
+                        "it",
+                        "jp",
+                        "kr",
+                        "lt",
+                        "lv",
+                        "ma",
+                        "mx",
+                        "my",
+                        "ng",
+                        "nl",
+                        "no",
+                        "nz",
+                        "ph",
+                        "pl",
+                        "pt",
+                        "ro",
+                        "rs",
+                        "ru",
+                        "sa",
+                        "se",
+                        "sg",
+                        "si",
+                        "sk",
+                        "th",
+                        "tr",
+                        "tw",
+                        "ua",
+                        "us",
+                        "ve",
+                        "za"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 32.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = "Filtros", fontSize = 26.sp)
+                            Column(
+                                modifier = Modifier.fillMaxWidth(0.9f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                FilterDropdown(
+                                    label = "Category",
+                                    options = categories,
+                                    selectedOption = selectedCategory
+                                ) {
+                                    selectedCategory = it
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                FilterDropdown(
+                                    label = "Language",
+                                    options = languages,
+                                    selectedOption = selectedLanguage
+                                ) {
+                                    selectedLanguage = it
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                FilterDropdown(
+                                    label = "Country",
+                                    options = countries,
+                                    selectedOption = selectedCountry
+                                ) {
+                                    selectedCountry = it
+                                }
+
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -482,4 +630,45 @@ fun CatalogArticlesDialog(
             }
         }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@Composable
+fun FilterDropdown(
+    label: String,
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        TextField(
+            value = selectedOption,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }

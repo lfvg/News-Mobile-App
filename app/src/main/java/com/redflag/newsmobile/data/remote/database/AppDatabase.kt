@@ -11,5 +11,4 @@ import com.redflag.newsmobile.data.remote.database.entities.Catalog
 @Database(entities = [Catalog::class, ArticleItem::class], version = 1, exportSchema = true)
 abstract class AppDatabase: RoomDatabase() {
     abstract fun catalogDao(): CatalogDao
-
 }
