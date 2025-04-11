@@ -1,3 +1,19 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// Function to safely load properties
+fun getApiKey(propertyKey: String): String {
+    val properties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(FileInputStream(localPropertiesFile))
+        return properties.getProperty(propertyKey) ?: "" // Return empty string if not found
+    } else {
+        println("Warning: local.properties file not found.")
+        return ""
+    }
+}
+
 plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.android.application)
@@ -19,6 +35,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "NEWS_API_KEY", "\"${getApiKey("NEWS_API_KEY")}\"")
     }
 
     buildTypes {
@@ -39,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"

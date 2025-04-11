@@ -3,6 +3,7 @@ package com.redflag.newsmobile.ui.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.redflag.newsmobile.BuildConfig
 import com.redflag.newsmobile.data.remote.api.NewsAppApi
 import com.redflag.newsmobile.data.remote.model.Article
 import com.redflag.newsmobile.data.remote.service.RetrofitHelper
@@ -31,7 +32,7 @@ class SearchViewModel: ViewModel() {
             _data.value = emptyList()
 
             try {
-                val response = newsAppApi.searchNews(searchQuery)
+                val response = newsAppApi.searchNews(searchQuery, BuildConfig.NEWS_API_KEY)
                 if (response.isSuccessful) {
                     Log.d("SearchViewModel", "Data fetched successfully")
                     _data.value = response.body()?.articles ?: emptyList()

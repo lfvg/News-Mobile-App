@@ -19,28 +19,24 @@ class HomeViewModel: ViewModel() {
 
     init {
         Log.d("HomeViewModel", "ViewModel initialized")
-        //fetchData()
-        viewModelScope.launch {
-            _data.value = emptyList(); //reset data
+        fetchData()
 
-            val response = newsAppApi.getHeadLines()
-            if(response.isSuccessful) {
-                _data.value = response.body()?.articles ?: emptyList()
-            }
-            else {
-                Log.d("HomeViewModel", "Error fetching data: " + response.code() + response.raw())
-            }
-        }
     }
 
     private fun fetchData() {
         viewModelScope.launch {
-            _data.value = emptyList(); //reset data
-            Log.d("HomeViewModel", "Fetching data...")
-            val response = newsAppApi.getHeadLines()
-            if (response.isSuccessful) {
-                Log.d("HomeViewModel", "Data fetched successfully")
-                _data.value = response.body()?.articles ?: emptyList()
+            if (_data.value.isEmpty()) {
+                _data.value = emptyList(); //reset data
+
+                val response = newsAppApi.getHeadLines()
+                if (response.isSuccessful) {
+                    _data.value = response.body()?.articles ?: emptyList()
+                } else {
+                    Log.d(
+                        "HomeViewModel",
+                        "Error fetching data: " + response.code() + response.raw()
+                    )
+                }
             }
         }
     }

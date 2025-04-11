@@ -96,9 +96,6 @@ fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit, cat
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-//                Column (modifier = Modifier.weight(1f)) {
-//                    Text(text = date, fontSize = 14.sp)
-//                }
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                     Text(
                         text = date,
@@ -116,7 +113,6 @@ fun NewsCardSide(article: Article, modifier: Modifier?, onClick: () -> Unit, cat
                     }
                 }
             }
-//            }
         }
 
     }

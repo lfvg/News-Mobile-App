@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -428,9 +430,12 @@ fun HomeView(
                             placeholder = { Text(text = "Search for news") },
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
+                                .background(MaterialTheme.colorScheme.surface)
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
                                 .semantics { traversalIndex = 0f }
                         ) { }
-                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(top = 128.dp)) {
                             searchData?.forEach { result ->
                                 NewsCardSide(article = result, modifier = Modifier, onClick = { }, catalogDao)
                             }
