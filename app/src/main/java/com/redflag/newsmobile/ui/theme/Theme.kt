@@ -32,27 +32,6 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = White60,
     surfaceVariant = Color.Red,
     onSurfaceVariant = DarkBlue80, // Icons on bottom bar
-    /*
-     primary = DarkBlue50,
-    onPrimary = White60,
-    primaryContainer = LightBlue50,
-    onPrimaryContainer = Black60,
-
-    secondary = Orange90,
-    onSecondary = White60,
-    secondaryContainer = Orange80,
-    onSecondaryContainer = Black60,
-
-    tertiary = Beige50,
-    onTertiary = Black60,
-    tertiaryContainer = Beige90,
-    onTertiaryContainer = Black60,
-
-    surface = White85,
-    onSurface = Black60,
-    surfaceVariant = LightGrey50,
-    onSurfaceVariant = Black60,
-     */
 )
 
 private val LightColorScheme = lightColorScheme(
